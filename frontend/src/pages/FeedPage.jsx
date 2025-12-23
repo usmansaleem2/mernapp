@@ -12,7 +12,23 @@ const FeedPage = () => {
   const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedStory, setSelectedStory] = useState(null);
+  const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const { user } = useAuth();
+
+  // Auto-close story after 5 seconds
+  useEffect(() => {
+    if (selectedStory && selectedStory.stories && selectedStory.stories.length > 0) {
+      const timer = setTimeout(() => {
+        if (currentStoryIndex < selectedStory.stories.length - 1) {
+          setCurrentStoryIndex(currentStoryIndex + 1);
+        } else {
+          setSelectedStory(null);
+          setCurrentStoryIndex(0);
+        }
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedStory, currentStoryIndex]);
 
   useEffect(() => { 
     fetchPosts(); 
@@ -62,6 +78,7 @@ const FeedPage = () => {
 
   const viewStory = async (storyGroup) => {
     setSelectedStory(storyGroup);
+    setCurrentStoryIndex(0);
     // Mark stories as viewed
     for (const story of storyGroup.stories) {
       try {
@@ -70,35 +87,82 @@ const FeedPage = () => {
     }
   };
 
+  const closeStory = () => {
+    setSelectedStory(null);
+    setCurrentStoryIndex(0);
+  };
+
   if (loading) return <Layout><LoadingScreen /></Layout>;
 
   return (
     <Layout>
       {/* Story Viewer Modal */}
-      {selectedStory && (
+      {selectedStory && selectedStory.stories && selectedStory.stories.length > 0 && (
         <div 
           className="fixed inset-0 bg-black z-50 flex items-center justify-center"
-          onClick={() => setSelectedStory(null)}
+          onClick={closeStory}
         >
+          {/* Progress bars */}
+          <div className="absolute top-4 left-4 right-4 flex gap-1 z-20">
+            {selectedStory.stories.map((_, idx) => (
+              <div key={idx} className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full bg-white rounded-full ${idx === currentStoryIndex ? '' : idx < currentStoryIndex ? 'w-full' : 'w-0'}`}
+                  style={idx === currentStoryIndex ? { animation: 'progressBar 5s linear forwards' } : {}}
+                ></div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Close button */}
           <button 
-            onClick={() => setSelectedStory(null)}
-            className="absolute top-4 right-4 text-white text-3xl z-10"
+            onClick={(e) => { e.stopPropagation(); closeStory(); }}
+            className="absolute top-8 right-4 text-white text-2xl z-20 w-10 h-10 flex items-center justify-center hover:bg-white/20 rounded-full transition-colors"
           >
             <i className="fas fa-times"></i>
           </button>
-          <div className="absolute top-4 left-4 flex items-center gap-3 z-10">
-            <img src={selectedStory.user.avatar} alt="" className="w-10 h-10 rounded-full object-cover" />
-            <span className="text-white font-semibold">{selectedStory.user.username}</span>
+          
+          {/* User info */}
+          <div className="absolute top-8 left-4 flex items-center gap-3 z-20">
+            <img src={selectedStory.user?.avatar} alt="" className="w-10 h-10 rounded-full object-cover border-2 border-white" />
+            <div>
+              <span className="text-white font-semibold">{selectedStory.user?.username}</span>
+              <p className="text-white/70 text-xs">
+                {selectedStory.stories[currentStoryIndex]?.createdAt && new Date(selectedStory.stories[currentStoryIndex].createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </p>
+            </div>
           </div>
+          
+          {/* Navigation arrows */}
+          {currentStoryIndex > 0 && (
+            <button 
+              onClick={(e) => { e.stopPropagation(); setCurrentStoryIndex(currentStoryIndex - 1); }}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-3xl z-20 w-12 h-12 flex items-center justify-center hover:bg-white/20 rounded-full transition-colors"
+            >
+              <i className="fas fa-chevron-left"></i>
+            </button>
+          )}
+          {currentStoryIndex < selectedStory.stories.length - 1 && (
+            <button 
+              onClick={(e) => { e.stopPropagation(); setCurrentStoryIndex(currentStoryIndex + 1); }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-3xl z-20 w-12 h-12 flex items-center justify-center hover:bg-white/20 rounded-full transition-colors"
+            >
+              <i className="fas fa-chevron-right"></i>
+            </button>
+          )}
+          
+          {/* Story image */}
           <img 
-            src={selectedStory.stories[0]?.image} 
+            src={selectedStory.stories[currentStoryIndex]?.image} 
             alt="" 
             className="max-h-screen max-w-full object-contain"
             onClick={(e) => e.stopPropagation()}
           />
-          {selectedStory.stories[0]?.caption && (
-            <div className="absolute bottom-10 left-0 right-0 text-center text-white px-4">
-              <p className="bg-black/50 inline-block px-4 py-2 rounded-lg">{selectedStory.stories[0].caption}</p>
+          
+          {/* Caption */}
+          {selectedStory.stories[currentStoryIndex]?.caption && (
+            <div className="absolute bottom-10 left-0 right-0 text-center text-white px-4 z-20">
+              <p className="bg-black/50 inline-block px-4 py-2 rounded-lg">{selectedStory.stories[currentStoryIndex].caption}</p>
             </div>
           )}
         </div>

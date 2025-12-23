@@ -22,6 +22,8 @@ const ProfilePage = () => {
   const [showFollowersModal, setShowFollowersModal] = useState(false);
   const [showFollowingModal, setShowFollowingModal] = useState(false);
   const [showStoryModal, setShowStoryModal] = useState(false);
+  const [showStoryViewer, setShowStoryViewer] = useState(false);
+  const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const [selectedPost, setSelectedPost] = useState(null);
   const [activeTab, setActiveTab] = useState('posts');
   const [editBio, setEditBio] = useState('');
@@ -139,6 +141,28 @@ const ProfilePage = () => {
   const handlePostClick = (post) => {
     setSelectedPost(post);
   };
+
+  const handleProfilePictureClick = () => {
+    if (stories.length > 0) {
+      setCurrentStoryIndex(0);
+      setShowStoryViewer(true);
+    }
+  };
+
+  // Auto-close story after 5 seconds
+  useEffect(() => {
+    if (showStoryViewer && stories.length > 0) {
+      const timer = setTimeout(() => {
+        if (currentStoryIndex < stories.length - 1) {
+          setCurrentStoryIndex(currentStoryIndex + 1);
+        } else {
+          setShowStoryViewer(false);
+          setCurrentStoryIndex(0);
+        }
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showStoryViewer, currentStoryIndex, stories.length]);
 
   const handlePostLike = async (postId) => {
     fetchPosts();
@@ -299,13 +323,88 @@ const ProfilePage = () => {
         />
       )}
 
+      {/* Story Viewer Modal */}
+      {showStoryViewer && stories.length > 0 && (
+        <div 
+          className="fixed inset-0 bg-black z-50 flex items-center justify-center"
+          onClick={() => setShowStoryViewer(false)}
+        >
+          {/* Progress bars */}
+          <div className="absolute top-4 left-4 right-4 flex gap-1 z-20">
+            {stories.map((_, idx) => (
+              <div key={idx} className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full bg-white rounded-full ${idx === currentStoryIndex ? 'animate-progress' : idx < currentStoryIndex ? 'w-full' : 'w-0'}`}
+                  style={idx === currentStoryIndex ? { animation: 'progressBar 5s linear forwards' } : {}}
+                ></div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Close button */}
+          <button 
+            onClick={(e) => { e.stopPropagation(); setShowStoryViewer(false); }}
+            className="absolute top-8 right-4 text-white text-2xl z-20 w-10 h-10 flex items-center justify-center hover:bg-white/20 rounded-full transition-colors"
+          >
+            <i className="fas fa-times"></i>
+          </button>
+          
+          {/* User info */}
+          <div className="absolute top-8 left-4 flex items-center gap-3 z-20">
+            <img src={profile?.avatar} alt="" className="w-10 h-10 rounded-full object-cover border-2 border-white" />
+            <div>
+              <span className="text-white font-semibold">{profile?.username}</span>
+              <p className="text-white/70 text-xs">
+                {stories[currentStoryIndex]?.createdAt && new Date(stories[currentStoryIndex].createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </p>
+            </div>
+          </div>
+          
+          {/* Navigation arrows */}
+          {currentStoryIndex > 0 && (
+            <button 
+              onClick={(e) => { e.stopPropagation(); setCurrentStoryIndex(currentStoryIndex - 1); }}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-3xl z-20 w-12 h-12 flex items-center justify-center hover:bg-white/20 rounded-full transition-colors"
+            >
+              <i className="fas fa-chevron-left"></i>
+            </button>
+          )}
+          {currentStoryIndex < stories.length - 1 && (
+            <button 
+              onClick={(e) => { e.stopPropagation(); setCurrentStoryIndex(currentStoryIndex + 1); }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-3xl z-20 w-12 h-12 flex items-center justify-center hover:bg-white/20 rounded-full transition-colors"
+            >
+              <i className="fas fa-chevron-right"></i>
+            </button>
+          )}
+          
+          {/* Story image */}
+          <img 
+            src={stories[currentStoryIndex]?.image} 
+            alt="" 
+            className="max-h-screen max-w-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+          
+          {/* Caption */}
+          {stories[currentStoryIndex]?.caption && (
+            <div className="absolute bottom-10 left-0 right-0 text-center text-white px-4 z-20">
+              <p className="bg-black/50 inline-block px-4 py-2 rounded-lg">{stories[currentStoryIndex].caption}</p>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="max-w-4xl mx-auto px-4 py-6">
         <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 mb-6 shadow-sm">
           <div className="flex flex-col md:flex-row items-center gap-8">
             {/* Profile Picture with Story Ring */}
             <div className="relative">
               {stories.length > 0 ? (
-                <div className="p-1 rounded-full bg-gradient-to-r from-red-500 to-orange-500">
+                <div 
+                  className="p-1 rounded-full bg-gradient-to-r from-red-500 to-orange-500 cursor-pointer hover:scale-105 transition-transform"
+                  onClick={handleProfilePictureClick}
+                >
                   <img src={profile.avatar} alt="" className="w-32 h-32 rounded-full object-cover border-4 border-white dark:border-slate-800" />
                 </div>
               ) : (

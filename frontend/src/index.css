@@ -604,6 +604,12 @@ body {
   animation: storyRing 3s linear infinite;
 }
 
+/* Story Progress Bar Animation */
+@keyframes progressBar {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
 /* Modal Backdrop Blur */
 .modal-backdrop {
   background: rgba(0, 0, 0, 0.6);
