@@ -115,13 +115,23 @@ const FeedPage = () => {
                   className="flex-shrink-0 cursor-pointer"
                   onClick={() => viewStory(storyGroup)}
                 >
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-r from-red-500 to-orange-500 p-0.5 mb-1">
-                    <img 
-                      src={storyGroup.user.avatar} 
-                      alt="" 
-                      className="w-full h-full rounded-full object-cover border-2 border-white dark:border-slate-800" 
-                    />
-                  </div>
+                  {storyGroup.stories && storyGroup.stories.length > 0 ? (
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-r from-red-500 to-orange-500 p-0.5 mb-1">
+                      <img 
+                        src={storyGroup.user.avatar} 
+                        alt="" 
+                        className="w-full h-full rounded-full object-cover border-2 border-white dark:border-slate-800" 
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 rounded-full mb-1">
+                      <img 
+                        src={storyGroup.user.avatar} 
+                        alt="" 
+                        className="w-full h-full rounded-full object-cover" 
+                      />
+                    </div>
+                  )}
                   <p className="text-xs text-center dark:text-slate-300 truncate w-16">{storyGroup.user.username}</p>
                 </div>
               ))}
@@ -147,9 +157,7 @@ const FeedPage = () => {
           <div className="hidden lg:block w-80">
             <div className="card p-4 mb-4 dark:bg-slate-800">
               <div className="flex items-center gap-3">
-                <div className="avatar-ring p-0.5">
-                  <img src={user?.avatar} alt="" className="w-14 h-14 rounded-full object-cover border-2 border-white dark:border-slate-800" />
-                </div>
+                <img src={user?.avatar} alt="" className="w-14 h-14 rounded-full object-cover" />
                 <div>
                   <p className="font-semibold dark:text-white">{user?.username}</p>
                   <p className={`text-sm px-2 py-0.5 rounded-full inline-block ${user?.role === 'creator' ? 'badge-creator' : 'badge-consumer'}`}>
@@ -165,7 +173,7 @@ const FeedPage = () => {
                 {suggested.map(u => (
                   <div key={u._id} className="flex items-center justify-between mb-4 last:mb-0">
                     <Link to={`/profile/${u._id}`} className="flex items-center gap-3">
-                      <img src={u.avatar} alt="" className="w-10 h-10 rounded-full object-cover" />
+                      <img src={u.avatar} alt="" className="w-10 h-10 rounded-full object-cover border-2 border-transparent" />
                       <div>
                         <p className="font-semibold text-sm dark:text-white">{u.username}</p>
                         <p className="text-slate-500 dark:text-slate-400 text-xs">{u.followers?.length || 0} followers</p>

@@ -161,24 +161,43 @@ const ProfilePage = () => {
             </div>
             
             <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Profile Picture URL</label>
-              <input
-                type="text"
-                placeholder="Enter image URL"
-                value={editAvatar}
-                onChange={(e) => setEditAvatar(e.target.value)}
-                className="w-full bg-slate-100 dark:bg-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none dark:text-white"
-              />
-              {editAvatar && (
-                <div className="mt-3 flex justify-center">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Profile Picture</label>
+              <div className="flex flex-col items-center">
+                <div className="relative">
                   <img
-                    src={editAvatar}
+                    src={editAvatar || 'https://via.placeholder.com/100?text=User'}
                     alt="Preview"
-                    className="w-20 h-20 rounded-full object-cover"
-                    onError={(e) => e.target.src = 'https://via.placeholder.com/80?text=Error'}
+                    className="w-24 h-24 rounded-full object-cover border-4 border-slate-200 dark:border-slate-600"
+                    onError={(e) => e.target.src = 'https://via.placeholder.com/100?text=Error'}
                   />
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById('avatarUpload').click()}
+                    className="absolute bottom-0 right-0 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                  >
+                    <i className="fas fa-camera text-sm"></i>
+                  </button>
                 </div>
-              )}
+                <input
+                  type="file"
+                  id="avatarUpload"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      if (file.size > 5 * 1024 * 1024) {
+                        alert('Image must be less than 5MB');
+                        return;
+                      }
+                      const reader = new FileReader();
+                      reader.onloadend = () => setEditAvatar(reader.result);
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Click camera icon to upload photo</p>
+              </div>
             </div>
             
             <div className="mb-6">
@@ -285,9 +304,13 @@ const ProfilePage = () => {
           <div className="flex flex-col md:flex-row items-center gap-8">
             {/* Profile Picture with Story Ring */}
             <div className="relative">
-              <div className={`p-1 rounded-full ${stories.length > 0 ? 'bg-gradient-to-r from-red-500 to-orange-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
-                <img src={profile.avatar} alt="" className="w-32 h-32 rounded-full object-cover border-4 border-white dark:border-slate-800" />
-              </div>
+              {stories.length > 0 ? (
+                <div className="p-1 rounded-full bg-gradient-to-r from-red-500 to-orange-500">
+                  <img src={profile.avatar} alt="" className="w-32 h-32 rounded-full object-cover border-4 border-white dark:border-slate-800" />
+                </div>
+              ) : (
+                <img src={profile.avatar} alt="" className="w-32 h-32 rounded-full object-cover" />
+              )}
               {isOwnProfile && (
                 <button 
                   onClick={() => setShowStoryModal(true)}

@@ -165,8 +165,18 @@ const MessagesPage = () => {
                     <button onClick={() => setSelectedUser(null)} className="md:hidden text-xl mr-2 dark:text-white">
                       <i className="fas fa-arrow-left"></i>
                     </button>
-                    <img src={selectedUser.avatar} alt="" className="w-10 h-10 rounded-full object-cover" />
-                    <span className="font-semibold dark:text-white">{selectedUser.username}</span>
+                    <img 
+                      src={selectedUser.avatar} 
+                      alt="" 
+                      className="w-10 h-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity" 
+                      onClick={() => navigate(`/profile/${selectedUser._id}`)}
+                    />
+                    <span 
+                      className="font-semibold dark:text-white cursor-pointer hover:text-red-500 transition-colors"
+                      onClick={() => navigate(`/profile/${selectedUser._id}`)}
+                    >
+                      {selectedUser.username}
+                    </span>
                   </div>
 
                   <div className="flex-1 overflow-y-auto p-4 bg-slate-50 dark:bg-slate-900/50">
