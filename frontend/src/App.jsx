@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 // Context Providers
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { SocketProvider } from './context/SocketContext';
 
 // Components
 import ProtectedRoute from './components/ProtectedRoute';
@@ -20,6 +21,7 @@ function App() {
     <Router>
       <ThemeProvider>
         <AuthProvider>
+          <SocketProvider>
           <Routes>
             {/* Public Route */}
             <Route path="/auth" element={<AuthPage />} />
@@ -79,6 +81,7 @@ function App() {
             {/* Catch all - redirect to home */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
+          </SocketProvider>
         </AuthProvider>
       </ThemeProvider>
     </Router>

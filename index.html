@@ -99,17 +99,37 @@
         
         <div class="grid">
             <div class="card">
-                <h3>1. Start Backend</h3>
-                <pre><code><span class="cmd">cd backend</span>
-<span class="cmd">npm install</span>
-<span class="cmd">node scripts/seed.js</span>  <span class="comment"># Create admin user</span>
-<span class="cmd">npm run dev</span></code></pre>
+                <h3>1. Setup MongoDB Atlas</h3>
+                <pre><code><span class="comment"># 1. Go to cloud.mongodb.com</span>
+<span class="comment"># 2. Create free cluster</span>
+<span class="comment"># 3. Create user: snapshare / snapshare123</span>
+<span class="comment"># 4. Network Access → Allow from Anywhere</span>
+<span class="comment"># 5. Get connection string</span>
+<span class="comment"># 6. Update backend/.env with your string</span></code></pre>
             </div>
             <div class="card">
-                <h3>2. Start Frontend</h3>
+                <h3>2. Start Backend</h3>
+                <pre><code><span class="cmd">cd backend</span>
+<span class="cmd">npm install</span>
+<span class="cmd">node scripts/seed.js</span>  <span class="comment"># Create admin</span>
+<span class="cmd">npm run dev</span></code></pre>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h3>3. Start Frontend</h3>
                 <pre><code><span class="cmd">cd frontend</span>
 <span class="cmd">npm install</span>
 <span class="cmd">npm run dev</span></code></pre>
+            </div>
+            <div class="card">
+                <h3>4. Open App</h3>
+                <pre><code><span class="cmd">http://localhost:3000</span>
+
+<span class="comment"># Admin login:</span>
+<span class="cmd">admin@snapshare.com</span>
+<span class="cmd">admin123</span></code></pre>
             </div>
         </div>
 

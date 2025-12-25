@@ -187,25 +187,52 @@ git clone <repository-url>
 cd snapshare
 ```
 
-### Step 2: Setup MongoDB
+### Step 2: Setup MongoDB Atlas (Cloud Database)
 
-**Option A: Local MongoDB**
-```bash
-# Mac
-brew services start mongodb-community
+**Follow these steps to set up MongoDB Atlas:**
 
-# Windows
-net start MongoDB
+#### Step 2.1: Create Account & Cluster
+1. Go to [https://cloud.mongodb.com](https://cloud.mongodb.com)
+2. Sign up for a free account (or log in)
+3. Click **"Build a Database"**
+4. Choose **"FREE" (M0 Sandbox)** tier
+5. Select a cloud provider (AWS recommended) and region closest to you
+6. Click **"Create Cluster"** (takes 1-3 minutes)
 
-# Linux
-sudo systemctl start mongod
+#### Step 2.2: Create Database User
+1. In the left sidebar, click **"Database Access"**
+2. Click **"Add New Database User"**
+3. Choose **"Password"** authentication
+4. Enter:
+   - Username: `snapshare`
+   - Password: `snapshare123` (or your own password)
+5. Set privileges to **"Read and write to any database"**
+6. Click **"Add User"**
+
+#### Step 2.3: Allow Network Access
+1. In the left sidebar, click **"Network Access"**
+2. Click **"Add IP Address"**
+3. Click **"Allow Access from Anywhere"** (for development)
+   - This adds `0.0.0.0/0` to the whitelist
+4. Click **"Confirm"**
+
+#### Step 2.4: Get Connection String
+1. In the left sidebar, click **"Database"**
+2. Click **"Connect"** on your cluster
+3. Choose **"Connect your application"**
+4. Copy the connection string (looks like):
+   ```
+   mongodb+srv://snapshare:<password>@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
+   ```
+5. Replace `<password>` with your actual password
+
+#### Step 2.5: Update .env File
+Open `backend/.env` and update the `MONGODB_URI`:
+```env
+MONGODB_URI=mongodb+srv://snapshare:snapshare123@cluster0.xxxxx.mongodb.net/snapshare?retryWrites=true&w=majority
 ```
 
-**Option B: MongoDB Atlas (Cloud)**
-1. Create account at [mongodb.com/atlas](https://www.mongodb.com/atlas)
-2. Create free cluster
-3. Get connection string
-4. Update `backend/.env` with your connection string
+**Important:** Replace `cluster0.xxxxx` with your actual cluster URL from step 2.4
 
 ### Step 3: Setup Backend
 

@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
+const http = require('http');
+const { Server } = require('socket.io');
 
 // Load environment variables
 dotenv.config();
@@ -16,6 +18,70 @@ const adminRoutes = require('./routes/adminRoutes');
 const storyRoutes = require('./routes/storyRoutes');
 
 const app = express();
+const server = http.createServer(app);
+
+// Socket.IO setup
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"]
+  }
+});
+
+// Store online users
+const onlineUsers = new Map();
+
+io.on('connection', (socket) => {
+  console.log('User connected:', socket.id);
+
+  // User joins with their ID
+  socket.on('user_online', (userId) => {
+    onlineUsers.set(userId, socket.id);
+    socket.userId = userId;
+    console.log('User online:', userId);
+  });
+
+  // Join a chat room
+  socket.on('join_chat', ({ senderId, receiverId }) => {
+    const roomId = [senderId, receiverId].sort().join('_');
+    socket.join(roomId);
+    console.log(`User ${senderId} joined room ${roomId}`);
+  });
+
+  // Send message
+  socket.on('send_message', (messageData) => {
+    const roomId = [messageData.senderId, messageData.receiverId].sort().join('_');
+    io.to(roomId).emit('receive_message', messageData);
+    
+    // Send notification to receiver
+    const receiverSocketId = onlineUsers.get(messageData.receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit('new_message_notification', {
+        senderId: messageData.senderId,
+        senderName: messageData.senderName
+      });
+    }
+  });
+
+  // Typing indicator
+  socket.on('typing', ({ senderId, receiverId }) => {
+    const roomId = [senderId, receiverId].sort().join('_');
+    socket.to(roomId).emit('user_typing', { userId: senderId });
+  });
+
+  socket.on('stop_typing', ({ senderId, receiverId }) => {
+    const roomId = [senderId, receiverId].sort().join('_');
+    socket.to(roomId).emit('user_stop_typing', { userId: senderId });
+  });
+
+  // Disconnect
+  socket.on('disconnect', () => {
+    if (socket.userId) {
+      onlineUsers.delete(socket.userId);
+      console.log('User disconnected:', socket.userId);
+    }
+  });
+});
 
 // Middleware
 app.use(cors());
@@ -46,7 +112,8 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+const PORT = process.env.PORT || 8000;
+server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📡 Socket.IO ready for connections`);
 });
