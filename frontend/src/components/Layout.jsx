@@ -25,7 +25,7 @@ const Layout = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300">
-      {/* Header */}
+      {/* Header - Logo + Theme Toggle only on Mobile */}
       <header className="glass fixed top-0 left-0 right-0 z-50 border-b border-zinc-200/50 dark:border-zinc-800/50 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           {/* Logo */}
@@ -36,7 +36,7 @@ const Layout = ({ children }) => {
             <span className="text-2xl font-bold gradient-text hidden sm:block">SnapShare</span>
           </Link>
           
-          {/* Search */}
+          {/* Search - Desktop Only */}
           <div className="hidden md:block relative">
             <input 
               type="text" 
@@ -50,7 +50,7 @@ const Layout = ({ children }) => {
             <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
             
             {showSearch && searchResults.length > 0 && (
-              <div className="absolute top-full left-0 right-0 bg-white dark:bg-zinc-800 shadow-2xl rounded-2xl mt-2 max-h-80 overflow-y-auto border border-zinc-200 dark:border-zinc-700 animate-scale-in">
+              <div className="absolute top-full left-0 right-0 bg-white dark:bg-zinc-800 shadow-2xl rounded-2xl mt-2 max-h-80 overflow-y-auto border border-zinc-200 dark:border-zinc-700">
                 {searchResults.map(u => (
                   <div 
                     key={u._id} 
@@ -68,68 +68,81 @@ const Layout = ({ children }) => {
             )}
           </div>
 
-          {/* Desktop Nav Icons */}
+          {/* Right Side */}
           <div className="flex items-center gap-3">
+            {/* Theme Toggle - Always visible */}
             <ThemeToggle />
-            <Link to="/" className={`icon-btn hidden md:flex ${isActive('/') ? 'bg-red-50 dark:bg-red-900/20 text-red-500' : 'text-zinc-600 dark:text-zinc-300'}`}>
-              <i className="fas fa-home text-xl"></i>
-            </Link>
-            <Link to="/messages" className={`icon-btn hidden md:flex relative ${isActive('/messages') ? 'bg-red-50 dark:bg-red-900/20 text-red-500' : 'text-zinc-600 dark:text-zinc-300'}`}>
-              <i className="fas fa-paper-plane text-xl"></i>
-              {unreadMessages > 0 && (
-                <>
-                  <span className="notification-dot"></span>
-                  <span className="notification-badge">{unreadMessages > 9 ? '9+' : unreadMessages}</span>
-                </>
-              )}
-            </Link>
-            {user?.role === 'creator' && (
-              <Link to="/create" className={`icon-btn hidden md:flex ${isActive('/create') ? 'bg-red-50 dark:bg-red-900/20 text-red-500' : 'text-zinc-600 dark:text-zinc-300'}`}>
-                <i className="fas fa-plus-square text-xl"></i>
+            
+            {/* Desktop Nav Icons - Hidden on Mobile */}
+            <div className="hidden md:flex items-center gap-3">
+              <Link to="/" className={`icon-btn ${isActive('/') ? 'bg-red-50 dark:bg-red-900/20 text-red-500' : 'text-zinc-600 dark:text-zinc-300'}`}>
+                <i className="fas fa-home text-xl"></i>
               </Link>
-            )}
-            <Link to="/profile" className={`icon-btn hidden md:flex ${isActive('/profile') ? 'bg-red-50 dark:bg-red-900/20 text-red-500' : 'text-zinc-600 dark:text-zinc-300'}`}>
-              <i className="fas fa-user-circle text-xl"></i>
-            </Link>
-            <button onClick={logout} className="icon-btn hidden md:flex text-zinc-600 dark:text-zinc-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">
-              <i className="fas fa-sign-out-alt text-xl"></i>
-            </button>
+              <Link to="/messages" className={`icon-btn relative ${isActive('/messages') ? 'bg-red-50 dark:bg-red-900/20 text-red-500' : 'text-zinc-600 dark:text-zinc-300'}`}>
+                <i className="fas fa-paper-plane text-xl"></i>
+                {unreadMessages > 0 && (
+                  <>
+                    <span className="notification-dot"></span>
+                    <span className="notification-badge">{unreadMessages > 9 ? '9+' : unreadMessages}</span>
+                  </>
+                )}
+              </Link>
+              {user?.role === 'creator' && (
+                <Link to="/create" className={`icon-btn ${isActive('/create') ? 'bg-red-50 dark:bg-red-900/20 text-red-500' : 'text-zinc-600 dark:text-zinc-300'}`}>
+                  <i className="fas fa-plus-square text-xl"></i>
+                </Link>
+              )}
+              <Link to="/profile" className={`icon-btn ${isActive('/profile') ? 'bg-red-50 dark:bg-red-900/20 text-red-500' : 'text-zinc-600 dark:text-zinc-300'}`}>
+                <i className="fas fa-user-circle text-xl"></i>
+              </Link>
+              <button onClick={logout} className="icon-btn text-zinc-600 dark:text-zinc-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">
+                <i className="fas fa-sign-out-alt text-xl"></i>
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="pt-20 pb-24 md:pb-8">{children}</main>
+      <main className="pt-20 pb-20 md:pb-8">{children}</main>
 
-      {/* Mobile Bottom Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 glass border-t border-zinc-200/50 dark:border-zinc-800/50 md:hidden z-50 shadow-lg">
-        <div className="flex justify-around py-2">
-          <Link to="/" className={`flex flex-col items-center py-2 px-4 rounded-xl transition-all ${isActive('/') ? 'text-red-500' : 'text-zinc-500 dark:text-zinc-400'}`}>
-            <i className={`fas fa-home text-2xl ${isActive('/') ? 'animate-bounce-slow' : ''}`}></i>
-            <span className="text-xs mt-1 font-medium">Home</span>
+      {/* Mobile Bottom Nav - Horizontal Line, Mobile Only */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 z-50 safe-area-bottom">
+        <div className="flex items-center justify-around h-16 max-w-md mx-auto">
+          <Link to="/" className={`flex flex-col items-center justify-center flex-1 h-full ${isActive('/') ? 'text-red-500' : 'text-zinc-500 dark:text-zinc-400'}`}>
+            <i className="fas fa-home text-xl"></i>
+            <span className="text-[10px] mt-1 font-medium">Home</span>
           </Link>
-          <Link to="/messages" className={`flex flex-col items-center py-2 px-4 rounded-xl transition-all relative ${isActive('/messages') ? 'text-red-500' : 'text-zinc-500 dark:text-zinc-400'}`}>
-            <i className={`fas fa-paper-plane text-2xl ${isActive('/messages') ? 'animate-bounce-slow' : ''}`}></i>
-            <span className="text-xs mt-1 font-medium">Messages</span>
-            {unreadMessages > 0 && (
-              <>
-                <span className="notification-dot" style={{top: '0', right: '12px'}}></span>
-                <span className="notification-badge" style={{top: '-4px', right: '8px'}}>{unreadMessages > 9 ? '9+' : unreadMessages}</span>
-              </>
-            )}
+          
+          <Link to="/messages" className={`flex flex-col items-center justify-center flex-1 h-full relative ${isActive('/messages') ? 'text-red-500' : 'text-zinc-500 dark:text-zinc-400'}`}>
+            <div className="relative">
+              <i className="fas fa-paper-plane text-xl"></i>
+              {unreadMessages > 0 && (
+                <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {unreadMessages > 9 ? '9+' : unreadMessages}
+                </span>
+              )}
+            </div>
+            <span className="text-[10px] mt-1 font-medium">Messages</span>
           </Link>
+          
           {user?.role === 'creator' && (
-            <Link to="/create" className={`flex flex-col items-center py-2 px-4 rounded-xl transition-all ${isActive('/create') ? 'text-red-500' : 'text-zinc-500 dark:text-zinc-400'}`}>
-              <div className={`w-12 h-12 -mt-6 rounded-full flex items-center justify-center shadow-lg ${isActive('/create') ? 'bg-red-500' : 'bg-gradient-to-br from-red-500 to-orange-500'}`}>
-                <i className="fas fa-plus text-white text-xl"></i>
+            <Link to="/create" className="flex items-center justify-center flex-1 h-full">
+              <div className="w-14 h-14 bg-gradient-to-br from-red-500 to-orange-500 rounded-full flex items-center justify-center shadow-lg -mt-8 border-4 border-white dark:border-zinc-900">
+                <i className="fas fa-plus text-white text-2xl"></i>
               </div>
-              <span className="text-xs mt-1 font-medium">Create</span>
             </Link>
           )}
-          <Link to="/profile" className={`flex flex-col items-center py-2 px-4 rounded-xl transition-all ${isActive('/profile') ? 'text-red-500' : 'text-zinc-500 dark:text-zinc-400'}`}>
-            <i className={`fas fa-user-circle text-2xl ${isActive('/profile') ? 'animate-bounce-slow' : ''}`}></i>
-            <span className="text-xs mt-1 font-medium">Profile</span>
+          
+          <Link to="/profile" className={`flex flex-col items-center justify-center flex-1 h-full ${isActive('/profile') ? 'text-red-500' : 'text-zinc-500 dark:text-zinc-400'}`}>
+            <i className="fas fa-user text-xl"></i>
+            <span className="text-[10px] mt-1 font-medium">Profile</span>
           </Link>
+          
+          <button onClick={logout} className="flex flex-col items-center justify-center flex-1 h-full text-zinc-500 dark:text-zinc-400 active:text-red-500">
+            <i className="fas fa-sign-out-alt text-xl"></i>
+            <span className="text-[10px] mt-1 font-medium">Logout</span>
+          </button>
         </div>
       </nav>
     </div>

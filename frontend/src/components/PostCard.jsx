@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ShareModal from './ShareModal';
@@ -16,9 +16,29 @@ const PostCard = ({ post, onLike, onDelete }) => {
   const [showDoubleTapHeart, setShowDoubleTapHeart] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [following, setFollowing] = useState([]);
+  const [showMentions, setShowMentions] = useState(false);
+  const [mentionSearch, setMentionSearch] = useState('');
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const commentInputRef = useRef(null);
   const isLiked = post.likes?.includes(user?._id);
   const isOwnPost = post.user?._id === user?._id;
   const lastTapRef = useRef(0);
+
+  // Fetch following list for mentions
+  useEffect(() => {
+    const fetchFollowing = async () => {
+      try {
+        const res = await api.get(`/users/${user._id}/following`);
+        setFollowing(res.data);
+      } catch (err) {
+        console.error('Error fetching following:', err);
+      }
+    };
+    if (user?._id) {
+      fetchFollowing();
+    }
+  }, [user?._id]);
 
   const handleLikeClick = () => {
     setIsLikeAnimating(true);
@@ -48,8 +68,54 @@ const PostCard = ({ post, onLike, onDelete }) => {
       const res = await api.post(`/posts/${post._id}/comment`, { text: commentText });
       setComments(res.data);
       setCommentText('');
+      setShowMentions(false);
     } catch (err) { /* ignore */ }
   };
+
+  // Handle comment input change with @ mention detection
+  const handleCommentChange = (e) => {
+    const value = e.target.value;
+    const cursorPos = e.target.selectionStart;
+    setCommentText(value);
+    setCursorPosition(cursorPos);
+
+    // Check for @ symbol before cursor
+    const textBeforeCursor = value.substring(0, cursorPos);
+    const atIndex = textBeforeCursor.lastIndexOf('@');
+    
+    if (atIndex !== -1) {
+      const textAfterAt = textBeforeCursor.substring(atIndex + 1);
+      // Check if there's no space after @
+      if (!textAfterAt.includes(' ')) {
+        setMentionSearch(textAfterAt.toLowerCase());
+        setShowMentions(true);
+        return;
+      }
+    }
+    setShowMentions(false);
+  };
+
+  // Insert mention into comment
+  const insertMention = (username) => {
+    const textBeforeCursor = commentText.substring(0, cursorPosition);
+    const atIndex = textBeforeCursor.lastIndexOf('@');
+    const textBeforeAt = commentText.substring(0, atIndex);
+    const textAfterCursor = commentText.substring(cursorPosition);
+    
+    const newText = `${textBeforeAt}@${username} ${textAfterCursor}`;
+    setCommentText(newText);
+    setShowMentions(false);
+    
+    // Focus back on input
+    if (commentInputRef.current) {
+      commentInputRef.current.focus();
+    }
+  };
+
+  // Filter following list based on search
+  const filteredMentions = following.filter(u => 
+    u.username.toLowerCase().includes(mentionSearch)
+  ).slice(0, 5);
 
   const handleSave = async () => {
     try {
@@ -225,21 +291,48 @@ const PostCard = ({ post, onLike, onDelete }) => {
               </div>
             ))}
           </div>
-          <form onSubmit={handleComment} className="flex gap-3">
-            <input 
-              type="text" 
-              placeholder="Add a comment..." 
-              value={commentText} 
-              onChange={(e) => setCommentText(e.target.value)} 
-              className="flex-1 bg-white dark:bg-zinc-800 rounded-full px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 dark:text-white" 
-            />
-            <button 
-              type="submit" 
-              disabled={!commentText.trim()}
-              className="px-5 py-3 bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:hover:bg-red-500 text-white font-semibold text-sm rounded-full transition-colors"
-            >
-              Post
-            </button>
+          <form onSubmit={handleComment} className="relative">
+            <div className="flex gap-3">
+              <div className="flex-1 relative">
+                <input 
+                  ref={commentInputRef}
+                  type="text" 
+                  placeholder="Add a comment... (type @ to mention)" 
+                  value={commentText} 
+                  onChange={handleCommentChange} 
+                  className="w-full bg-white dark:bg-zinc-800 rounded-full px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 dark:text-white" 
+                />
+                
+                {/* Mention Dropdown */}
+                {showMentions && filteredMentions.length > 0 && (
+                  <div className="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-zinc-800 rounded-xl shadow-2xl border border-zinc-200 dark:border-zinc-700 overflow-hidden z-20 max-h-48 overflow-y-auto">
+                    <div className="p-2 border-b border-zinc-200 dark:border-zinc-700">
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Mention someone</p>
+                    </div>
+                    {filteredMentions.map(u => (
+                      <div 
+                        key={u._id}
+                        onClick={() => insertMention(u.username)}
+                        className="flex items-center gap-3 p-3 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer transition-colors"
+                      >
+                        <img src={u.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
+                        <div>
+                          <p className="font-semibold text-sm dark:text-white">@{u.username}</p>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400 capitalize">{u.role}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <button 
+                type="submit" 
+                disabled={!commentText.trim()}
+                className="px-5 py-3 bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:hover:bg-red-500 text-white font-semibold text-sm rounded-full transition-colors"
+              >
+                Post
+              </button>
+            </div>
           </form>
         </div>
       )}
